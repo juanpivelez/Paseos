@@ -74,11 +74,11 @@ function rH(){const un=q.filter(x=>x.a=='agregar').map(x=>({id:x.id,f:x.fecha,i:
 function del(x){if(!confirm('¿Borrar este paseo?'))return;
  if(typeof x=='string')q=q.filter(e=>e.id!=x);else{const r=rows.find(e=>e.r==x);q.push({a:'borrar',id:uid(),r:x,f:r.f,m:r.m});rows=rows.filter(e=>e.r!=x);S('rows',rows)}
  S('q',q);render();sync()}
-function render(){rP();rD();rH();const n=q.length;$('#st').textContent=!cfg.url?'Falta configurar en Ajustes':n?`⏳ ${n} cambio(s) pendiente(s) de enviar`:'✓ Todo enviado'}
+function render(){rP();rD();rH();const n=q.length;$('#st').textContent=!cfg.url?'Falta configurar en Ajustes':n?`⏳ ${n} cambio(s) pendiente(s) de enviar${err?' · Error: '+err:''}`:'✓ Todo enviado'}
 async function api(b){const r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...b,t:cfg.t})});return r.json()}
 async function cargar(){if(!cfg.url||!navigator.onLine)return;try{const r=await(await fetch(cfg.url+'?t='+encodeURIComponent(cfg.t))).json();if(r.ok){rows=r.rows;S('rows',rows)}else toast(r.error)}catch(e){}}
-let busy=0;async function sync(){if(busy||!cfg.url||!navigator.onLine)return;busy=1;
- try{while(q.length){const r=await api(q[0]);if(r.error){toast(r.error);break}q.shift();S('q',q);if(!r.ok)toast('Un cambio no coincidió con la hoja: revisala')}if(!q.length)await cargar()}catch(e){}
+let busy=0,err='';async function sync(){if(busy||!cfg.url||!navigator.onLine)return;busy=1;err='';
+ try{while(q.length){const r=await api(q[0]);if(r.error){err=r.error;toast(r.error);break}q.shift();S('q',q);if(!r.ok)toast('Un cambio no coincidió con la hoja: revisala')}if(!q.length)await cargar()}catch(e){err='Respuesta inválida del script'}
  busy=0;render()}
 $('#gc').onclick=()=>{cfg={url:$('#u').value.trim(),t:$('#k').value.trim(),pr:parseFloat($('#pr').value.replace(',','.'))||0};S('cfg',cfg);toast('Guardado');nav('p');render();sync()};
 $('#u').value=cfg.url||'';$('#k').value=cfg.t||'';$('#pr').value=cfg.pr||'';$('#mf').value=hoy();
